@@ -21,4 +21,28 @@ export class WargaRepository {
       data
     });
   }
+
+  static async getStats() {
+    const totalWargaKk = await prisma.warga.count();
+    const sumAnggota = await prisma.warga.aggregate({
+      _sum: {
+        jumlahAnggota: true,
+      },
+    });
+
+    const hunianMilikCount = await prisma.warga.count({
+      where: { statusRumah: "MILIK_SENDIRI" },
+    });
+
+    const hunianSewaCount = await prisma.warga.count({
+      where: { statusRumah: { in: ["SEWA", "KONTRAK"] } },
+    });
+
+    return {
+      totalKK: totalWargaKk,
+      totalWarga: sumAnggota._sum.jumlahAnggota || 0,
+      hunianMilik: hunianMilikCount,
+      hunianSewa: hunianSewaCount,
+    };
+  }
 }

@@ -10,8 +10,9 @@ const router = Router();
 router.use(authenticate);
 
 router.get("/", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), WargaController.getAllWarga);
+router.get("/stats", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), WargaController.getStats);
 router.post("/", authorizeFilters(["ADMIN_ADMINISTRASI"]), validateRegisterWarga, WargaController.registerWarga);
-router.get("/:id", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), validateWargaId, WargaController.getWargaById);
-router.put("/:id", authorizeFilters(["ADMIN_ADMINISTRASI"]), validateWargaId, WargaController.updateWarga);
+router.get("/:id(\\d+)", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), validateWargaId, WargaController.getWargaById);
+router.put("/:id(\\d+)", authorizeFilters(["ADMIN_ADMINISTRASI"]), validateWargaId, WargaController.updateWarga);
 
 export default router;

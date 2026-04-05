@@ -51,4 +51,8 @@ export class WargaService {
       noTelepon,
     });
   }
+
+  static async getStats() {
+    return WargaRepository.getStats();
+  }
 }

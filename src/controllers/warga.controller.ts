@@ -46,5 +46,13 @@ export class WargaController {
       res.status(500).json({ error: err.message });
     }
   }
-}
 
+  static async getStats(req: Request, res: Response): Promise<void> {
+    try {
+      const stats = await WargaService.getStats();
+      res.status(200).json(stats);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+}
