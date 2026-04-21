@@ -39,7 +39,9 @@ export class TagihanController {
 
   static async getTunggakan(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const tunggakan = await TagihanService.getTunggakan();
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const tunggakan = await TagihanService.getTunggakan(page, limit);
       res.status(200).json(tunggakan);
     } catch (err) {
       next(err);

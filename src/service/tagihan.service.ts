@@ -14,8 +14,14 @@ export class TagihanService {
     return TagihanRepository.findAllIuranMaster();
   }
 
-  static async generateTagihanBulanan(bulan: number, tahun: number) {
-    const allWarga = await WargaRepository.findAll();
+  static async generateTagihanBulanan(bulan: number, tahun: number, targetNoTelepon?: string) {
+    const wargaResult = await WargaRepository.findAll();
+    let allWarga: any[] = 'data' in wargaResult ? (wargaResult as any).data : wargaResult;
+    
+    if (targetNoTelepon) {
+      allWarga = allWarga.filter((w: any) => w.user && w.user.noTelepon === targetNoTelepon);
+    }
+
     const allIuranMaster = await TagihanRepository.findAllIuranMaster();
     
     const totalNominal = allIuranMaster.reduce((sum, item) => sum + item.nominal, 0);
@@ -39,8 +45,17 @@ export class TagihanService {
     return createdTagihans;
   }
 
-  static async getTunggakan() {
-    return TagihanRepository.findTunggakan();
+  static async getTunggakan(page?: number, limit?: number) {
+    const tunggakan = await TagihanRepository.findTunggakan();
+    let paginatedData = tunggakan;
+    
+    if (page && limit) {
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      paginatedData = tunggakan.slice(startIndex, endIndex);
+    }
+    
+    return { data: paginatedData, total: tunggakan.length };
   }
 
   static async getMyTagihan(wargaId: number) {

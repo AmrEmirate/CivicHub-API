@@ -25,7 +25,14 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  otpCode     String?
+  otpExpiry   DateTime?
+  
   warga       Warga?
+  pengumuman  Pengumuman[]
+  notifikasi  Notifikasi[]
+  laporanDibuat  Laporan[] @relation("LaporanPembuat")
+  laporanDisetujui Laporan[] @relation("LaporanPenyetuju")
 }
 
 model Warga {
@@ -106,4 +113,52 @@ model KasHarian {
   buktiUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Pengumuman {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  type        String   @default("INFO") // INFO, EVENT
+  targetRole  String   @default("ALL")  // ALL, WARGA, ADMIN_KEUANGAN, SUPER_ADMIN
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notifikasi {
+  id          Int      @id @default(autoincrement())
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  userId      Int      // Target penerima notif (Warga / Bendahara)
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum StatusLaporan {
+  PENDING
+  APPROVED
+  REVISI
+}
+
+model Laporan {
+  id          Int            @id @default(autoincrement())
+  title       String
+  fileUrl     String?        // Link PDF yang di-export bendahara
+  bulan       Int
+  tahun       Int
+  status      StatusLaporan  @default(PENDING)
+  komentar    String?        // Field comment dari RT jika REVISI
+  
+  pembuatId   Int            // Bendahara yang buat
+  pembuat     User           @relation("LaporanPembuat", fields: [pembuatId], references: [id])
+  
+  penyetujuId Int?           // RT yang approve
+  penyetuju   User?          @relation("LaporanPenyetuju", fields: [penyetujuId], references: [id])
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }

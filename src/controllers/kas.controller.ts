@@ -11,9 +11,20 @@ export class KasController {
     }
   }
 
+  static async getStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const stats = await KasService.getStats();
+      res.status(200).json(stats);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   static async getBukuKasUmum(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await KasService.getBukuKasUmum();
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      const result = await KasService.getBukuKasUmum(page, limit);
       res.status(200).json(result);
     } catch (err) {
       next(err);
@@ -22,8 +33,8 @@ export class KasController {
 
   static async exportLaporanTahunan(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { tahun } = req.params;
-      await KasService.exportLaporanTahunan(tahun as string, res);
+      const tahun = String(req.params.tahun);
+      await KasService.exportLaporanTahunan(tahun, res);
     } catch (err) {
       if (!res.headersSent) {
         next(err);

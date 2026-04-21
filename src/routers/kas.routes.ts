@@ -8,6 +8,7 @@ const router = Router();
 
 router.use(authenticate);
 
+router.get("/stats", authenticate, KasController.getStats);
 // HANYA BENDAHARA & RT
 router.post("/record", authorizeFilters(["ADMIN_KEUANGAN"]), validateRecordKas, KasController.recordKas);
 router.get("/buku-kas", authorizeFilters(["SUPER_ADMIN", "ADMIN_KEUANGAN"]), KasController.getBukuKasUmum);

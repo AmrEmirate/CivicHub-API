@@ -1,6 +1,9 @@
 import { KasRepository } from "../repositories/kas.repository";
+import { PrismaClient } from "@prisma/client";
 import PDFDocument from "pdfkit";
 import { Response } from "express";
+
+const prisma = new PrismaClient();
 
 export class KasService {
   static async recordKas(data: any) {
@@ -11,7 +14,7 @@ export class KasService {
     });
   }
 
-  static async getBukuKasUmum() {
+  static async getBukuKasUmum(page?: number, limit?: number) {
     const kas = await KasRepository.findAllOrderByDateDesc();
     let saldo = 0;
     const kasDenganSaldo = [...kas].reverse().map(item => {
@@ -20,7 +23,51 @@ export class KasService {
       return { ...item, saldoBerikutnya: saldo };
     }).reverse();
 
-    return { totalSaldoAkhir: saldo, riwayat: kasDenganSaldo };
+    let paginatedData = kasDenganSaldo;
+    if (page && limit) {
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      paginatedData = kasDenganSaldo.slice(startIndex, endIndex);
+    }
+
+    return { totalSaldoAkhir: saldo, riwayat: paginatedData, totalItem: kasDenganSaldo.length };
+  }
+
+  static async getStats() {
+    const kasRecords = await prisma.kasHarian.findMany();
+    let totalPemasukan = 0;
+    let totalPengeluaran = 0;
+
+    for (const record of kasRecords) {
+      if (record.jenis === "PEMASUKAN") totalPemasukan += record.nominal;
+      if (record.jenis === "PENGELUARAN") totalPengeluaran += record.nominal;
+    }
+
+    const tagihanCounts = await prisma.tagihan.groupBy({
+      by: ['status'],
+      _count: {
+        id: true,
+      },
+    });
+
+    let invoicesTunggakan = 0;
+    let invoicesBaru = 0;
+    let invoicesLunas = 0;
+
+    for (const group of tagihanCounts) {
+      if (group.status === "TUNGGAKAN") invoicesTunggakan = group._count.id;
+      if (group.status === "BELUM_LUNAS") invoicesBaru = group._count.id;
+      if (group.status === "LUNAS") invoicesLunas = group._count.id;
+    }
+
+    return {
+      totalPemasukan,
+      totalPengeluaran,
+      saldo: totalPemasukan - totalPengeluaran,
+      invoicesTunggakan,
+      invoicesBaru,
+      invoicesLunas
+    };
   }
 
   static async exportLaporanTahunan(tahun: string, res: Response) {

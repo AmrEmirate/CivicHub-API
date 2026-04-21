@@ -3,8 +3,8 @@ import bcrypt from "bcrypt";
 import { AuthRepository } from "../repositories/auth.repository";
 
 export class WargaService {
-  static async getAllWarga() {
-    return WargaRepository.findAll();
+  static async getAllWarga(search?: string, page?: number, limit?: number, status?: string) {
+    return WargaRepository.findAll(search, page, limit, status);
   }
 
   /** Registrasi warga baru oleh Sekretaris (tanpa membuat User akun login) */

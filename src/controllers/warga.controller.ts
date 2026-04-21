@@ -4,8 +4,13 @@ import { WargaService } from "../service/warga.service";
 export class WargaController {
   static async getAllWarga(req: Request, res: Response): Promise<void> {
     try {
-      const warga = await WargaService.getAllWarga();
-      res.status(200).json(warga);
+      const search = req.query.search as string | undefined;
+      const status = req.query.status as string | undefined;
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+      
+      const result = await WargaService.getAllWarga(search, page, limit, status);
+      res.status(200).json(result);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -28,8 +33,8 @@ export class WargaController {
 
   static async getWargaById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const warga = await WargaService.getWargaById(parseInt(id as string, 10));
+      const id = String(req.params.id);
+      const warga = await WargaService.getWargaById(parseInt(id, 10));
       res.status(200).json(warga);
     } catch (err: any) {
       if (err.message === "Warga not found") res.status(404).json({ message: err.message });
@@ -39,8 +44,8 @@ export class WargaController {
 
   static async updateWarga(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const warga = await WargaService.updateWarga(parseInt(id as string, 10), req.body);
+      const id = String(req.params.id);
+      const warga = await WargaService.updateWarga(parseInt(id, 10), req.body);
       res.status(200).json({ message: "Warga updated", warga });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
