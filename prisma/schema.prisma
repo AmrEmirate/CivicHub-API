@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -17,32 +16,32 @@ enum Role {
 
 model User {
   id          Int      @id @default(autoincrement())
-  noTelepon   String?  @unique // Digunakan sebagai username login warga
-  email       String?  @unique // Digunakan sebagai username login admin (RT, Sekretaris, Bendahara)
+  noTelepon   String?  @unique
+  email       String?  @unique
   name        String?
   role        Role     @default(WARGA)
   password    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   otpCode     String?
   otpExpiry   DateTime?
-  
+
   warga       Warga?
   pengumuman  Pengumuman[]
   notifikasi  Notifikasi[]
-  laporanDibuat  Laporan[] @relation("LaporanPembuat")
+  laporanDibuat    Laporan[] @relation("LaporanPembuat")
   laporanDisetujui Laporan[] @relation("LaporanPenyetuju")
 }
 
 model Warga {
   id              Int       @id @default(autoincrement())
-  noRumah         String?   // Nomor/alamat rumah warga
+  noRumah         String?
   noKK            String    @unique
   kepalaKeluarga  String
   jumlahAnggota   Int       @default(1)
   noTelepon       String?
-  statusRumah     String    @default("MILIK_SENDIRI") // MILIK_SENDIRI, SEWA, KONTRAK
+  statusRumah     String    @default("MILIK_SENDIRI")
   userId          Int       @unique
   user            User      @relation(fields: [userId], references: [id])
   tagihan         Tagihan[]
@@ -52,9 +51,9 @@ model Warga {
 
 model IuranMaster {
   id        Int      @id @default(autoincrement())
-  nama      String   // e.g., "Keamanan", "Kebersihan", "Sosial"
+  nama      String
   nominal   Float
-  periode   String   @default("BULANAN") // BULANAN, MINGGUAN
+  periode   String   @default("BULANAN")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -88,10 +87,10 @@ model Pembayaran {
   id              Int              @id @default(autoincrement())
   tagihanId       Int
   tagihan         Tagihan          @relation(fields: [tagihanId], references: [id])
-  metode          String           // "CASH", "TRANSFER", "QRIS"
+  metode          String
   jumlahBayar     Float
   tanggalBayar    DateTime?
-  referenceId     String?          @unique // untuk payment gateway
+  referenceId     String?          @unique
   status          StatusPembayaran @default(PENDING)
   buktiUrl        String?
   createdAt       DateTime         @default(now())
@@ -107,7 +106,7 @@ model KasHarian {
   id          Int      @id @default(autoincrement())
   tanggal     DateTime @default(now())
   jenis       JenisKas
-  kategori    String   // "IURAN", "DONASI", "OPERASIONAL"
+  kategori    String
   keterangan  String
   nominal     Float
   buktiUrl    String?
@@ -119,8 +118,8 @@ model Pengumuman {
   id          Int      @id @default(autoincrement())
   title       String
   content     String
-  type        String   @default("INFO") // INFO, EVENT
-  targetRole  String   @default("ALL")  // ALL, WARGA, ADMIN_KEUANGAN, SUPER_ADMIN
+  type        String   @default("INFO")
+  targetRole  String   @default("ALL")
   authorId    Int
   author      User     @relation(fields: [authorId], references: [id])
   createdAt   DateTime @default(now())
@@ -132,7 +131,7 @@ model Notifikasi {
   title       String
   message     String
   isRead      Boolean  @default(false)
-  userId      Int      // Target penerima notif (Warga / Bendahara)
+  userId      Int
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -147,18 +146,18 @@ enum StatusLaporan {
 model Laporan {
   id          Int            @id @default(autoincrement())
   title       String
-  fileUrl     String?        // Link PDF yang di-export bendahara
+  fileUrl     String?
   bulan       Int
   tahun       Int
   status      StatusLaporan  @default(PENDING)
-  komentar    String?        // Field comment dari RT jika REVISI
-  
-  pembuatId   Int            // Bendahara yang buat
+  komentar    String?
+
+  pembuatId   Int
   pembuat     User           @relation("LaporanPembuat", fields: [pembuatId], references: [id])
-  
-  penyetujuId Int?           // RT yang approve
+
+  penyetujuId Int?
   penyetuju   User?          @relation("LaporanPenyetuju", fields: [penyetujuId], references: [id])
-  
+
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 }

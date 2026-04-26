@@ -7,10 +7,10 @@ import prisma from "../config/prisma";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const midtransClient = require('midtrans-client');
 
-const coreApi = new midtransClient.CoreApi({
+const snap = new midtransClient.Snap({
   isProduction: false,
-  serverKey: process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-YOUR_SERVER_KEY',
-  clientKey: process.env.MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_CLIENT_KEY'
+  serverKey: process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-eiI-mROAGApUNj7hn4VCm4Nj',
+  clientKey: process.env.MIDTRANS_CLIENT_KEY || 'SB-Mid-client-RDSS_US8FGGFBgXg'
 });
 
 export class PaymentService {
@@ -44,31 +44,27 @@ export class PaymentService {
       return { pembayaran, message: "Pembayaran cash berhasil dicatat" };
     }
 
-    // Map metode ke payment_type Midtrans (hanya digital)
-    const paymentTypeMap: Record<string, string> = {
-      QRIS: "qris",
-      GOPAY: "gopay",
-      TRANSFER: "bank_transfer",
-    };
-    const paymentType = paymentTypeMap[metode?.toUpperCase()] || "gopay";
-
     const parameter = {
-      "payment_type": paymentType,
       "transaction_details": {
         "order_id": referenceId,
         "gross_amount": tagihan.totalNominal
       },
       "customer_details": {
-        "first_name": tagihan.warga.kepalaKeluarga,
-        "email": tagihan.warga.user?.email ?? "",
-        "phone": tagihan.warga.noTelepon || ""
+        "first_name": tagihan.warga.kepalaKeluarga.substring(0, 50),
+        "email": tagihan.warga.user?.email || "warga@civichub.id",
+        "phone": tagihan.warga.noTelepon || "081111111111"
       }
     };
 
     try {
-      const midtransResponse = await coreApi.charge(parameter);
-      return { pembayaran, midtransResponse };
+      const transaction = await snap.createTransaction(parameter);
+      return { 
+        pembayaran, 
+        midtransResponse: transaction,
+        checkoutUrl: transaction.redirect_url 
+      };
     } catch (midtransError) {
+      console.error('Midtrans Error:', midtransError);
       return { 
         pembayaran, 
         checkoutUrl: `https://mock-payment-gateway.com/checkout/${referenceId}`,
@@ -81,7 +77,7 @@ export class PaymentService {
     const { order_id, transaction_status, status_code, gross_amount, signature_key } = reqBody; 
     
     // 🔒 1. VALIDASI SIGNATURE KEY (MENCEGAH WEBHOOK SPOOFING)
-    const serverKey = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-YOUR_SERVER_KEY';
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-eiI-mROAGApUNj7hn4VCm4Nj';
     const expectedHash = crypto.createHash('sha512')
       .update(`${order_id}${status_code}${gross_amount}${serverKey}`)
       .digest('hex');
