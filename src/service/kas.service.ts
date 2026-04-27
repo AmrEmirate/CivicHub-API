@@ -128,4 +128,10 @@ export class KasService {
 
     doc.end();
   }
+
+  static async deleteKas(id: number) {
+    const existing = await prisma.kasHarian.findUnique({ where: { id } });
+    if (!existing) throw new Error("Kas not found");
+    return prisma.kasHarian.delete({ where: { id } });
+  }
 }

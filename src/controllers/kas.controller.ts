@@ -41,5 +41,23 @@ export class KasController {
       }
     }
   }
+
+  static async deleteKas(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ error: "ID tidak valid" });
+        return;
+      }
+      await KasService.deleteKas(id);
+      res.status(200).json({ message: "Transaksi kas berhasil dihapus" });
+    } catch (err: any) {
+      if (err.message === "Kas not found") {
+        res.status(404).json({ error: err.message });
+      } else {
+        next(err);
+      }
+    }
+  }
 }
 

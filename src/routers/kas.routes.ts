@@ -13,5 +13,6 @@ router.get("/stats", KasController.getStats);
 router.post("/record", authorizeFilters(["ADMIN_KEUANGAN", "SUPER_ADMIN"]), validateRecordKas, KasController.recordKas);
 router.get("/buku-kas", authorizeFilters(["SUPER_ADMIN", "ADMIN_KEUANGAN"]), KasController.getBukuKasUmum);
 router.get("/laporan-tahunan/:tahun", authorizeFilters(["SUPER_ADMIN", "ADMIN_KEUANGAN"]), KasController.exportLaporanTahunan);
+router.delete("/:id", authorizeFilters(["SUPER_ADMIN", "ADMIN_KEUANGAN"]), KasController.deleteKas);
 
 export default router;
