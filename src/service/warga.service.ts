@@ -55,4 +55,10 @@ export class WargaService {
   static async getStats() {
     return WargaRepository.getStats();
   }
+
+  static async deleteWarga(id: number) {
+    const warga = await WargaRepository.findById(id);
+    if (!warga) throw new Error("Warga not found");
+    return WargaRepository.deleteWithUser(id, warga.userId);
+  }
 }

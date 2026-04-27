@@ -23,6 +23,7 @@ async function main() {
   // SUPER_ADMIN
   await prisma.user.create({
     data: {
+      noTelepon: '081111111111',
       email: 'superadmin@gmail.com',
       name: 'Super Admin CivicHub',
       role: Role.SUPER_ADMIN,
@@ -33,6 +34,7 @@ async function main() {
   // ADMIN_ADMINISTRASI (Sekretaris)
   await prisma.user.create({
     data: {
+      noTelepon: '082222222222',
       email: 'sekretaris@gmail.com',
       name: 'Sekretaris RT',
       role: Role.ADMIN_ADMINISTRASI,
@@ -43,6 +45,7 @@ async function main() {
   // ADMIN_KEUANGAN (Bendahara)
   await prisma.user.create({
     data: {
+      noTelepon: '083333333333',
       email: 'bendahara@gmail.com',
       name: 'Bendahara RT',
       role: Role.ADMIN_KEUANGAN,

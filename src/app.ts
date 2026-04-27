@@ -18,6 +18,7 @@ import kasRoutes from "./routers/kas.routes";
 import pengumumanRoutes from "./routers/pengumuman.routes";
 import notifikasiRoutes from "./routers/notifikasi.routes";
 import laporanRoutes from "./routers/laporan.routes";
+import userRoutes from "./routers/user.routes";
 
 const PORT: number = parseInt(process.env.PORT || "3000", 10);
 
@@ -91,6 +92,7 @@ class App {
     this.app.use("/api/pengumuman", pengumumanRoutes);
     this.app.use("/api/notifikasi", notifikasiRoutes);
     this.app.use("/api/laporan", laporanRoutes);
+    this.app.use("/api/users", userRoutes);
 
     // Root route — tidak mengekspos nama/detail sistem
     this.app.get("/", (req: Request, res: Response) => {

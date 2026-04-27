@@ -45,6 +45,40 @@ export class WargaRepository {
     });
   }
 
+  static async findByWargaId(wargaId: number) {
+    return prisma.tagihan.findMany({
+      where: { wargaId },
+      include: { pembayaran: true },
+      orderBy: [{ tahun: "desc" }, { bulan: "desc" }]
+    });
+  }
+
+  /**
+   * Hapus warga dan user-nya sekaligus dalam satu transaksi.
+   * Urutan: hapus tagihan & pembayaran terkait → hapus warga → hapus user
+   */
+  static async deleteWithUser(wargaId: number, userId: number) {
+    return prisma.$transaction(async (tx) => {
+      // Hapus pembayaran terkait tagihan warga ini
+      const tagihanIds = await tx.tagihan.findMany({
+        where: { wargaId },
+        select: { id: true }
+      });
+      if (tagihanIds.length > 0) {
+        await tx.pembayaran.deleteMany({
+          where: { tagihanId: { in: tagihanIds.map(t => t.id) } }
+        });
+        await tx.tagihan.deleteMany({ where: { wargaId } });
+      }
+      // Hapus notifikasi user
+      await tx.notifikasi.deleteMany({ where: { userId } });
+      // Hapus warga
+      await tx.warga.delete({ where: { id: wargaId } });
+      // Hapus user
+      await tx.user.delete({ where: { id: userId } });
+    });
+  }
+
   static async update(id: number, data: Prisma.WargaUpdateInput) {
     return prisma.warga.update({
       where: { id },

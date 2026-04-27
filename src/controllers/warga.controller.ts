@@ -60,4 +60,15 @@ export class WargaController {
       res.status(500).json({ error: err.message });
     }
   }
+
+  static async deleteWarga(req: Request, res: Response): Promise<void> {
+    try {
+      const id = parseInt(req.params.id, 10);
+      await WargaService.deleteWarga(id);
+      res.status(200).json({ message: "Warga deleted successfully" });
+    } catch (err: any) {
+      if (err.message === "Warga not found") res.status(404).json({ message: err.message });
+      else res.status(500).json({ error: err.message });
+    }
+  }
 }
