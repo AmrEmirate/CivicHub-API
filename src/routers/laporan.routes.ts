@@ -11,7 +11,7 @@ router.get("/", authenticate, LaporanController.getAll);
 router.get("/:id", authenticate, LaporanController.getById);
 
 // Yang create harus Bendahara (ADMIN_KEUANGAN)
-router.post("/", authenticate, authorizeFilters(["ADMIN_KEUANGAN"]), LaporanController.create);
+router.post("/", authenticate, authorizeFilters(["ADMIN_KEUANGAN", "SUPER_ADMIN"]), LaporanController.create);
 
 // Yang approve harus RT (SUPER_ADMIN)
 router.put("/:id/approve", authenticate, authorizeFilters(["SUPER_ADMIN"]), LaporanController.processApproval);

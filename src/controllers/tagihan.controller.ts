@@ -21,6 +21,34 @@ export class TagihanController {
     }
   }
 
+  static async updateIuranMaster(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ error: "ID tidak valid" });
+        return;
+      }
+      const iuran = await TagihanService.updateIuranMaster(id, req.body);
+      res.status(200).json({ message: "Iuran Master updated", iuran });
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
+  static async deleteIuranMaster(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ error: "ID tidak valid" });
+        return;
+      }
+      await TagihanService.deleteIuranMaster(id);
+      res.status(200).json({ message: "Iuran Master deleted" });
+    } catch (err: any) {
+      next(err);
+    }
+  }
+
   static async generateTagihanBulanan(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const bulan = parseInt(req.body.bulan, 10);
@@ -56,6 +84,25 @@ export class TagihanController {
       }
       const tagihans = await TagihanService.getMyTagihan(req.user.wargaId);
       res.status(200).json(tagihans);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async updateStatusTagihan(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const { status } = req.body;
+      if (isNaN(id)) {
+        res.status(400).json({ error: "ID tidak valid" });
+        return;
+      }
+      if (!status || !["BELUM_LUNAS", "LUNAS", "TUNGGAKAN"].includes(status)) {
+        res.status(400).json({ error: "Status tidak valid" });
+        return;
+      }
+      const tagihan = await TagihanService.updateStatusTagihan(id, status);
+      res.status(200).json({ message: "Status tagihan updated", tagihan });
     } catch (err) {
       next(err);
     }

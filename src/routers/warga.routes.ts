@@ -11,7 +11,7 @@ router.use(authenticate);
 
 router.get("/", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), WargaController.getAllWarga);
 router.get("/stats", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), WargaController.getStats);
-router.post("/", authorizeFilters(["ADMIN_ADMINISTRASI"]), validateRegisterWarga, WargaController.registerWarga);
+router.post("/", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), validateRegisterWarga, WargaController.registerWarga);
 router.get("/:id(\\d+)", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), validateWargaId, WargaController.getWargaById);
 router.put("/:id(\\d+)", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), validateWargaId, WargaController.updateWarga);
 router.delete("/:id(\\d+)", authorizeFilters(["SUPER_ADMIN", "ADMIN_ADMINISTRASI"]), validateWargaId, WargaController.deleteWarga);

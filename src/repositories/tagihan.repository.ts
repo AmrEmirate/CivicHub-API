@@ -1,5 +1,5 @@
 import prisma from "../config/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma, StatusTagihan } from "@prisma/client";
 
 export class TagihanRepository {
   static async createIuranMaster(data: Prisma.IuranMasterCreateInput) {
@@ -10,6 +10,14 @@ export class TagihanRepository {
     return prisma.iuranMaster.findMany();
   }
 
+  static async updateIuranMaster(id: number, data: Prisma.IuranMasterUpdateInput) {
+    return prisma.iuranMaster.update({ where: { id }, data });
+  }
+
+  static async deleteIuranMaster(id: number) {
+    return prisma.iuranMaster.delete({ where: { id } });
+  }
+
   static async findExistingTagihan(wargaId: number, bulan: number, tahun: number) {
     return prisma.tagihan.findFirst({
       where: { wargaId, bulan, tahun }
@@ -18,6 +26,10 @@ export class TagihanRepository {
 
   static async createTagihan(data: Prisma.TagihanCreateInput) {
     return prisma.tagihan.create({ data });
+  }
+
+  static async updateStatusTagihan(id: number, status: string) {
+    return prisma.tagihan.update({ where: { id }, data: { status: status as StatusTagihan } });
   }
 
   /**

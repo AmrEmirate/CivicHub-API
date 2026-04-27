@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { authenticate } from "../middleware/auth";
 import { authorizeFilters } from "../middleware/role";
 import prisma from "../config/prisma";
+import bcrypt from "bcrypt";
 
 const router = Router();
 
@@ -87,6 +88,43 @@ router.put("/me", async (req: Request, res: Response): Promise<void> => {
     } else {
       res.status(500).json({ error: err.message });
     }
+  }
+});
+
+// CREATE USER (ADMIN) - Hanya RT
+router.post("/", authorizeFilters(["SUPER_ADMIN"]), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, email, noTelepon, password, role } = req.body;
+    if (!name || !password || !role) {
+      res.status(400).json({ message: "Data tidak lengkap" });
+      return;
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        noTelepon,
+        password: hashedPassword,
+        role: role as any
+      },
+      select: { id: true, name: true, role: true }
+    });
+    res.status(201).json({ message: "Pengguna berhasil dibuat", user });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE USER - Hanya RT
+router.delete("/:id", authorizeFilters(["SUPER_ADMIN"]), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id);
+    await prisma.user.delete({ where: { id } });
+    res.status(200).json({ message: "Pengguna berhasil dihapus" });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

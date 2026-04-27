@@ -30,6 +30,7 @@ model User {
   warga       Warga?
   pengumuman  Pengumuman[]
   notifikasi  Notifikasi[]
+  dokumen     Dokumen[]
   laporanDibuat    Laporan[] @relation("LaporanPembuat")
   laporanDisetujui Laporan[] @relation("LaporanPenyetuju")
 }
@@ -160,4 +161,16 @@ model Laporan {
 
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+}
+
+model Dokumen {
+  id          Int      @id @default(autoincrement())
+  title       String
+  fileUrl     String
+  type        String   // lpj, surat, notulen, dll
+  size        String?
+  authorId    Int
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
