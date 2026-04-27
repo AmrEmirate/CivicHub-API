@@ -36,7 +36,7 @@ class App {
     this.app.use(compression());
 
     // 🔒 4. CORS TERBATAS — Hanya izinkan domain frontend resmi
-    const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173").split(",");
+    const allowedOrigins = (process.env.ALLOWED_ORIGINS as string || "").split(",");
     this.app.use(cors({
       origin: (origin, callback) => {
         // Izinkan request tanpa origin (Postman, mobile app, server-to-server)
@@ -155,7 +155,7 @@ class App {
 
   public start(): void {
     this.server = this.app.listen(PORT, () => {
-      logger.info(`API Running: http://localhost:${PORT}`);
+      logger.info(`API Running on port: ${PORT}`);
 
       // 🔒 Server timeout — cegah koneksi lambat menumpuk (Slowloris attack)
       this.server.timeout = 30000; // 30 detik
