@@ -33,6 +33,9 @@ class App {
   }
 
   private configure(): void {
+    // ✅ Trust proxy agar IP asli terbaca di belakang Coolify/Nginx/Caddy
+    this.app.set('trust proxy', 1);
+
     this.app.use(helmet());
     this.app.use(compression());
 
@@ -55,21 +58,38 @@ class App {
     // Batasi ukuran payload request (mencegah request bombing)
     this.app.use(express.json({ limit: '10kb' }));
     
-    // 🔒 3. MENGAKTIFKAN RATE LIMITING (ANTI DDOS & BRUTE FORCE)
+    // 🔒 3. RATE LIMITING — Anti DDoS & Brute Force
+    // Global limiter: per-IP, lebih longgar untuk production di balik proxy
     const apiLimiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 menit
-      max: 200, // Limit setiap IP maksimal 200 request per 15 menit
-      message: { error: "Terlalu banyak permintaan dari IP ini, coba lagi nanti." },
+      max: 500, // 500 request per IP per 15 menit (cukup untuk multi-user)
+      message: { error: "Terlalu banyak permintaan. Silakan coba lagi nanti." },
       standardHeaders: true,
       legacyHeaders: false,
+      // Jika semua user di balik 1 proxy, skip IP-based global limiter
+      skip: (req: Request) => {
+        const ip = req.ip || '';
+        // Skip jika datang dari localhost/proxy internal
+        return ip === '127.0.0.1' || ip === '::1' || ip.startsWith('::ffff:127.');
+      },
     });
 
+    // Auth limiter: per NOMOR TELEPON (bukan per IP!)
+    // Ini memastikan tiap akun punya limit sendiri, bukan shared antar user
     const authLimiter = rateLimit({
-      windowMs: 15 * 60 * 1000, 
-      max: 15, // Khusus login/register: Dibatasi maksimal 15 coba
-      message: { error: "Terlalu banyak percobaan login. Akun dikunci sementara selama 15 menit." },
+      windowMs: 15 * 60 * 1000, // 15 menit
+      max: 20, // Maks 20 percobaan login per nomor per 15 menit
+      message: { error: "Terlalu banyak percobaan login untuk akun ini. Coba lagi dalam 15 menit." },
       standardHeaders: true,
       legacyHeaders: false,
+      // KEY = nomor telepon dari body request, bukan IP
+      // Setiap akun punya kuota sendiri → user lain tidak terdampak
+      keyGenerator: (req: Request): string => {
+        const phone = req.body?.noTelepon || req.body?.phone || req.body?.identifier || '';
+        if (phone) return `auth_${phone}`;
+        // Fallback ke IP jika tidak ada phone (misal: hit endpoint selain login)
+        return req.ip || 'unknown';
+      },
     });
 
     this.app.use("/api/", apiLimiter);
